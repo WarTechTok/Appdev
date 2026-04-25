@@ -65,7 +65,7 @@ void main() async {
   router.all('/<ignored|.*>', _notFound);
 
   final handler =
-      Pipeline().addMiddleware(logRequests()).addHandler(router.call);
+      const Pipeline().addMiddleware(logRequests()).addHandler(router.call);
 
   await shelf_io.serve(handler, 'localhost', 8080);
   print('🚀 Backend server running on http://localhost:8080');

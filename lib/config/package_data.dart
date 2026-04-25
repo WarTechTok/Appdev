@@ -32,7 +32,7 @@ class OasisPackage {
 
 final Map<String, Map<String, OasisPackage>> oasisPackages = {
   'Oasis 1': {
-    'Package 1': OasisPackage(
+    'Package 1': const OasisPackage(
       name: 'Package 1',
       description: 'Cottage Only',
       capacity: 20,
@@ -50,7 +50,7 @@ final Map<String, Map<String, OasisPackage>> oasisPackages = {
       },
       addons: ['Karaoke (₱700)', 'Stove 10hrs (₱200)', 'Stove 22hrs (₱400)'],
     ),
-    'Package 2': OasisPackage(
+    'Package 2': const OasisPackage(
       name: 'Package 2',
       description: '1 AC Room (Superior - 2-4 pax)',
       capacity: 4,
@@ -71,7 +71,7 @@ final Map<String, Map<String, OasisPackage>> oasisPackages = {
       },
       addons: ['Karaoke (₱700)', 'Stove 10hrs (₱200)', 'Stove 22hrs (₱400)'],
     ),
-    'Package 3': OasisPackage(
+    'Package 3': const OasisPackage(
       name: 'Package 3',
       description: '1 AC Room (Family - 8-12 pax)',
       capacity: 12,
@@ -93,7 +93,7 @@ final Map<String, Map<String, OasisPackage>> oasisPackages = {
       },
       addons: ['Karaoke (₱700)', 'Stove 10hrs (₱200)', 'Stove 22hrs (₱400)'],
     ),
-    'Package 4': OasisPackage(
+    'Package 4': const OasisPackage(
       name: 'Package 4',
       description: '2 AC Rooms (Family + Superior - 12-15 pax)',
       capacity: 15,
@@ -117,7 +117,7 @@ final Map<String, Map<String, OasisPackage>> oasisPackages = {
     ),
   },
   'Oasis 2': {
-    'Package 1': OasisPackage(
+    'Package 1': const OasisPackage(
       name: 'Package 1',
       description: 'Private Pool (Exclusive)',
       capacity: 30,
@@ -136,7 +136,7 @@ final Map<String, Map<String, OasisPackage>> oasisPackages = {
       },
       addons: ['Karaoke (₱700)', 'Stove 10hrs (₱200)', 'Stove 22hrs (₱400)'],
     ),
-    'Package 2': OasisPackage(
+    'Package 2': const OasisPackage(
       name: 'Package 2',
       description: '1 AC Room + Private Pool',
       capacity: 15,

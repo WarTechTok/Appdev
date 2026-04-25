@@ -1,9 +1,7 @@
 // lib/screens/admin/admin_layout.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
-import '../../services/auth_provider.dart';
 
 class AdminLayout extends StatefulWidget {
   const AdminLayout({super.key});

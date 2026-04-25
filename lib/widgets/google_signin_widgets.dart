@@ -65,7 +65,7 @@ class GoogleAvatar extends StatelessWidget {
 
   Widget _defaultAvatar() {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         shape: BoxShape.circle,
         gradient: LinearGradient(
           colors: [AppColors.primary, AppColors.primaryLight],
@@ -169,13 +169,13 @@ class GoogleProfileHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [AppColors.primary, AppColors.primaryLight],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(24),
           bottomRight: Radius.circular(24),
         ),

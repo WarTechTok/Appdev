@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../config/app_theme.dart';
 
+import '../../widgets/core/glass_card.dart';
+
 class PackageDetailsScreen extends StatelessWidget {
   final String packageName;
 
@@ -122,14 +124,17 @@ class PackageDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final packageKey = packageName.toLowerCase();
     final details = packageDetails[packageKey] ?? packageDetails['standard']!;
+    final isFeatured = details['isFeatured'] == true;
 
     return Scaffold(
+      backgroundColor: const Color(0xFF003158),
       body: CustomScrollView(
         slivers: [
-          // App Bar with Image
+          // Sticky App Bar with Image
           SliverAppBar(
             expandedHeight: 300,
             pinned: true,
+            backgroundColor: const Color(0xFF003158),
             flexibleSpace: FlexibleSpaceBar(
               title: Text(
                 details['name'] as String,
@@ -146,8 +151,6 @@ class PackageDetailsScreen extends StatelessWidget {
                     details['image'] as String,
                     fit: BoxFit.cover,
                     filterQuality: FilterQuality.high,
-                    cacheHeight: 400,
-                    cacheWidth: 600,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
                         color: AppColors.primary.withOpacity(0.3),
@@ -161,7 +164,7 @@ class PackageDetailsScreen extends StatelessWidget {
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Colors.black.withOpacity(0.4), Colors.transparent],
+                        colors: [Colors.black.withOpacity(0.5), Colors.transparent],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                       ),
@@ -170,19 +173,20 @@ class PackageDetailsScreen extends StatelessWidget {
                 ],
               ),
             ),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
           ),
+          
           // Content
           SliverPadding(
             padding: const EdgeInsets.all(16),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                // Price and Duration
-                Container(
+                // Price and Duration Card
+                GlassCard(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -192,24 +196,24 @@ class PackageDetailsScreen extends StatelessWidget {
                           Text('Price',
                               style: GoogleFonts.poppins(
                                   fontSize: 12,
-                                  color: AppColors.textSecondary)),
+                                  color: Colors.white70)),
                           Text(details['price'] as String,
                               style: GoogleFonts.poppins(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w700,
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w800,
                                   color: AppColors.primary)),
                         ],
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
+                            horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
                           color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(details['duration'] as String,
                             style: GoogleFonts.poppins(
-                                fontSize: 12,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.white)),
                       ),
@@ -218,128 +222,135 @@ class PackageDetailsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
-                // Description
+                // Description Section
                 Text('About This Package',
                     style: GoogleFonts.poppins(
-                        fontSize: 16, fontWeight: FontWeight.w700)),
-                const SizedBox(height: 8),
+                        fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
+                const SizedBox(height: 10),
                 Text(details['description'] as String,
                     style: GoogleFonts.poppins(
                         fontSize: 14,
                         height: 1.6,
-                        color: AppColors.textSecondary)),
-                const SizedBox(height: 20),
+                        color: Colors.white70)),
+                const SizedBox(height: 24),
 
-                // Features
+                // Features Section
                 Text('What\'s Included',
                     style: GoogleFonts.poppins(
-                        fontSize: 16, fontWeight: FontWeight.w700)),
-                const SizedBox(height: 12),
-                ...(details['features'] as List<String>)
-                    .map(
-                      (feature) => Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              margin: const EdgeInsets.only(top: 4, right: 12),
-                              width: 6,
-                              height: 6,
-                              decoration: BoxDecoration(
-                                color: AppColors.primary,
-                                shape: BoxShape.circle,
-                              ),
+                        fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
+                const SizedBox(height: 14),
+                GlassCard(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: (details['features'] as List<String>)
+                        .map(
+                          (feature) => Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  margin: const EdgeInsets.only(top: 6, right: 12),
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.primary,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Text(feature,
+                                      style: GoogleFonts.poppins(
+                                          fontSize: 14,
+                                          color: Colors.white70)),
+                                ),
+                              ],
                             ),
-                            Expanded(
-                              child: Text(feature,
-                                  style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      color: AppColors.textPrimary)),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                    .toList(),
-                const SizedBox(height: 20),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
+                const SizedBox(height: 24),
 
-                // Highlights
+                // Highlights Section
                 Text('Highlights',
                     style: GoogleFonts.poppins(
-                        fontSize: 16, fontWeight: FontWeight.w700)),
-                const SizedBox(height: 12),
-                ...(details['highlights'] as List<String>)
-                    .map(
-                      (highlight) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(right: 12, top: 2),
-                              child: Icon(Icons.check_circle,
-                                  size: 20,
-                                  color: AppColors.primary.withOpacity(0.7)),
+                        fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
+                const SizedBox(height: 14),
+                GlassCard(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: (details['highlights'] as List<String>)
+                        .map(
+                          (highlight) => Padding(
+                            padding: const EdgeInsets.only(bottom: 14),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Padding(
+                                  padding: EdgeInsets.only(right: 12, top: 2),
+                                  child: Icon(Icons.check_circle,
+                                      size: 20,
+                                      color: AppColors.primary),
+                                ),
+                                Expanded(
+                                  child: Text(highlight,
+                                      style: GoogleFonts.poppins(
+                                          fontSize: 13,
+                                          height: 1.5,
+                                          color: Colors.white70)),
+                                ),
+                              ],
                             ),
-                            Expanded(
-                              child: Text(highlight,
-                                  style: GoogleFonts.poppins(
-                                      fontSize: 13,
-                                      height: 1.5,
-                                      color: AppColors.textPrimary)),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                    .toList(),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
                 const SizedBox(height: 30),
 
                 // Book Now Button
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton.icon(
+                  height: 52,
+                  child: ElevatedButton(
                     onPressed: () {
-                      // Navigate to booking with this package pre-selected
                       Navigator.pushNamed(context, '/booking',
                           arguments: {'packageName': packageName});
                     },
-                    icon: const Icon(Icons.calendar_month, size: 20),
-                    label: Text('Book This Package',
-                        style: GoogleFonts.poppins(
-                            fontSize: 16, fontWeight: FontWeight.w600)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(14),
                       ),
                     ),
+                    child: Text('Book This Package',
+                        style: GoogleFonts.poppins(
+                            fontSize: 16, fontWeight: FontWeight.w600)),
                   ),
                 ),
                 const SizedBox(height: 12),
 
-                // Contact Support
+                // Contact Support Button
                 SizedBox(
                   width: double.infinity,
-                  child: OutlinedButton.icon(
+                  height: 52,
+                  child: OutlinedButton(
                     onPressed: () {
                       Navigator.pushNamed(context, '/contact-us');
                     },
-                    icon: const Icon(Icons.help_outline, size: 20),
-                    label: Text('Need Help?',
-                        style: GoogleFonts.poppins(
-                            fontSize: 16, fontWeight: FontWeight.w600)),
                     style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: AppColors.primary, width: 1.5),
                       foregroundColor: AppColors.primary,
-                      side: BorderSide(color: AppColors.primary, width: 2),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(14),
                       ),
                     ),
+                    child: Text('Need Help?',
+                        style: GoogleFonts.poppins(
+                            fontSize: 16, fontWeight: FontWeight.w600)),
                   ),
                 ),
                 const SizedBox(height: 24),

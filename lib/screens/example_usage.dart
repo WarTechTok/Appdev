@@ -97,7 +97,7 @@ class WidgetShowcaseScreen extends StatelessWidget {
   Widget _buildRoomTab() {
     // Example room data
     final rooms = [
-      RoomModel(
+      const RoomModel(
         id: '1',
         name: 'Superior Room',
         capacity: 2,
@@ -105,7 +105,7 @@ class WidgetShowcaseScreen extends StatelessWidget {
         description: 'Comfortable room with queen bed',
         status: 'Available',
       ),
-      RoomModel(
+      const RoomModel(
         id: '2',
         name: 'Family Room',
         capacity: 4,
@@ -113,7 +113,7 @@ class WidgetShowcaseScreen extends StatelessWidget {
         description: 'Spacious room perfect for families',
         status: 'Booked',
       ),
-      RoomModel(
+      const RoomModel(
         id: '3',
         name: 'Cottage',
         capacity: 6,
@@ -142,7 +142,7 @@ class WidgetShowcaseScreen extends StatelessWidget {
   Widget _buildStaffTab() {
     // Example staff data
     final staffMembers = [
-      StaffModel(
+      const StaffModel(
         id: '1',
         staffId: 'S001',
         name: 'Maria Santos',
@@ -151,7 +151,7 @@ class WidgetShowcaseScreen extends StatelessWidget {
         position: 'Manager',
         status: 'Active',
       ),
-      StaffModel(
+      const StaffModel(
         id: '2',
         staffId: 'S002',
         name: 'Ana Lopez',
@@ -160,7 +160,7 @@ class WidgetShowcaseScreen extends StatelessWidget {
         position: 'Housekeeper',
         status: 'Active',
       ),
-      StaffModel(
+      const StaffModel(
         id: '3',
         staffId: 'S003',
         name: 'Carlos Reyes',
@@ -169,7 +169,7 @@ class WidgetShowcaseScreen extends StatelessWidget {
         position: 'Security',
         status: 'Active',
       ),
-      StaffModel(
+      const StaffModel(
         id: '4',
         staffId: 'S004',
         name: 'Juan Cruz',
@@ -202,7 +202,7 @@ class WidgetShowcaseScreen extends StatelessWidget {
   Widget _buildInventoryTab() {
     // Example inventory data
     final items = [
-      InventoryModel(
+      const InventoryModel(
         id: '1',
         itemId: 'INV001',
         item: 'Bed Sheets',
@@ -210,7 +210,7 @@ class WidgetShowcaseScreen extends StatelessWidget {
         unit: 'sets',
         lowStockAlert: 5,
       ),
-      InventoryModel(
+      const InventoryModel(
         id: '2',
         itemId: 'INV002',
         item: 'Towels',
@@ -218,7 +218,7 @@ class WidgetShowcaseScreen extends StatelessWidget {
         unit: 'pcs',
         lowStockAlert: 10,
       ),
-      InventoryModel(
+      const InventoryModel(
         id: '3',
         itemId: 'INV003',
         item: 'Toiletries',

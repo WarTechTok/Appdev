@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
 import '../../services/auth_provider.dart';
+import '../../widgets/core/glass_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,16 +18,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<Widget> _tabs = const [
     _HomeTab(),
-    _BookingTabPlaceholder(),
-    _MyBookingsTabPlaceholder(),
+    SizedBox.shrink(),
+    SizedBox.shrink(),
     _ProfileTab(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF003158),
       body: _tabs[_selectedTab],
       bottomNavigationBar: NavigationBar(
+        backgroundColor: const Color(0xFF003158),
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
         selectedIndex: _selectedTab,
         onDestinationSelected: (i) {
           if (i == 1) {
@@ -40,10 +45,10 @@ class _HomeScreenState extends State<HomeScreen> {
           setState(() => _selectedTab = i);
         },
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.calendar_month_outlined), selectedIcon: Icon(Icons.calendar_month), label: 'Book'),
-          NavigationDestination(icon: Icon(Icons.receipt_long_outlined), selectedIcon: Icon(Icons.receipt_long), label: 'My Bookings'),
-          NavigationDestination(icon: Icon(Icons.person_outlined), selectedIcon: Icon(Icons.person), label: 'Profile'),
+          NavigationDestination(icon: Icon(Icons.home_outlined, color: Colors.white70), selectedIcon: Icon(Icons.home, color: AppColors.primary), label: 'Home'),
+          NavigationDestination(icon: Icon(Icons.calendar_month_outlined, color: Colors.white70), selectedIcon: Icon(Icons.calendar_month, color: AppColors.primary), label: 'Book'),
+          NavigationDestination(icon: Icon(Icons.receipt_long_outlined, color: Colors.white70), selectedIcon: Icon(Icons.receipt_long, color: AppColors.primary), label: 'My Bookings'),
+          NavigationDestination(icon: Icon(Icons.person_outlined, color: Colors.white70), selectedIcon: Icon(Icons.person, color: AppColors.primary), label: 'Profile'),
         ],
       ),
     );
@@ -62,6 +67,7 @@ class _HomeTab extends StatelessWidget {
         SliverAppBar(
           expandedHeight: 220,
           pinned: true,
+          backgroundColor: const Color(0xFF003158),
           flexibleSpace: FlexibleSpaceBar(
             title: Text('BlueSense Resort',
                 style: GoogleFonts.poppins(
@@ -73,14 +79,11 @@ class _HomeTab extends StatelessWidget {
                   'assets/images/hero/welcome.jpg',
                   fit: BoxFit.cover,
                   filterQuality: FilterQuality.high,
-                  cacheHeight: 275,
-                  cacheWidth: 600,
                   errorBuilder: (context, error, stackTrace) {
-                    debugPrint('Error loading hero image: $error');
                     return Container(
                       decoration: const BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [AppColors.primaryDark, AppColors.primary, AppColors.primaryLight],
+                          colors: [Color(0xFF003158), Color(0xFF001a2e)],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
@@ -91,7 +94,7 @@ class _HomeTab extends StatelessWidget {
                 Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Colors.black.withOpacity(0.3), Colors.transparent],
+                      colors: [Colors.black.withOpacity(0.4), Colors.transparent],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                     ),
@@ -114,35 +117,34 @@ class _HomeTab extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              // Welcome
+              // Welcome Card
               if (auth.user != null)
-                Container(
+                GlassCard(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
                   child: Row(
                     children: [
                       CircleAvatar(
+                        radius: 28,
                         backgroundColor: AppColors.primary,
                         child: Text(
                           auth.user!.name.isNotEmpty ? auth.user!.name[0].toUpperCase() : 'U',
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          style: const TextStyle(color: Color(0xFF003158), fontWeight: FontWeight.bold, fontSize: 18),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Welcome back!',
-                              style: GoogleFonts.poppins(
-                                  fontSize: 12, color: AppColors.textSecondary)),
-                          Text(auth.user!.name,
-                              style: GoogleFonts.poppins(
-                                  fontSize: 16, fontWeight: FontWeight.w700,
-                                  color: AppColors.textPrimary)),
-                        ],
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Welcome back!',
+                                style: GoogleFonts.poppins(
+                                    fontSize: 12, color: Colors.white70)),
+                            Text(auth.user!.name,
+                                style: GoogleFonts.poppins(
+                                    fontSize: 18, fontWeight: FontWeight.w700,
+                                    color: Colors.white)),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -152,7 +154,7 @@ class _HomeTab extends StatelessWidget {
               // Quick actions
               Text('Quick Actions',
                   style: GoogleFonts.poppins(
-                      fontSize: 16, fontWeight: FontWeight.w700)),
+                      fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
               const SizedBox(height: 12),
               Row(
                 children: [
@@ -184,12 +186,12 @@ class _HomeTab extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
               // Our Pools
               Text('Our Pools',
                   style: GoogleFonts.poppins(
-                      fontSize: 16, fontWeight: FontWeight.w700)),
+                      fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
               const SizedBox(height: 12),
               _PoolCard(
                 name: 'Oasis 1',
@@ -210,16 +212,16 @@ class _HomeTab extends StatelessWidget {
                 color: AppColors.primary,
                 onTap: () => Navigator.pushNamed(context, '/oasis-2'),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
               // Special Packages Section
               Text('Special Packages',
                   style: GoogleFonts.poppins(
-                      fontSize: 18, fontWeight: FontWeight.w700)),
+                      fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
               const SizedBox(height: 8),
               Text('Exclusive offers for your perfect getaway',
                   style: GoogleFonts.poppins(
-                      fontSize: 12, color: AppColors.textSecondary)),
+                      fontSize: 12, color: Colors.white70)),
               const SizedBox(height: 12),
               
               // Package Cards
@@ -288,17 +290,17 @@ class _HomeTab extends StatelessWidget {
                 isFeatured: true,
                 onTap: () => Navigator.pushNamed(context, '/package/deluxe-plus'),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
               // Amenities
               Text('Amenities',
                   style: GoogleFonts.poppins(
-                      fontSize: 16, fontWeight: FontWeight.w700)),
+                      fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
               const SizedBox(height: 12),
-              Wrap(
+              const Wrap(
                 spacing: 10,
                 runSpacing: 10,
-                children: const [
+                children: [
                   _AmenityChip(label: 'Swimming Pool', icon: Icons.pool),
                   _AmenityChip(label: 'Jacuzzi', icon: Icons.spa),
                   _AmenityChip(label: 'Free WiFi', icon: Icons.wifi),
@@ -309,57 +311,70 @@ class _HomeTab extends StatelessWidget {
                   _AmenityChip(label: 'Parking', icon: Icons.local_parking),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
-              // Contact
+              // Contact Card
               GestureDetector(
                 onTap: () => Navigator.pushNamed(context, '/contact-us'),
-                child: Container(
+                child: GlassCard(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [AppColors.primary, AppColors.primaryLight],
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
                   child: Row(
                     children: [
-                      const Icon(Icons.info_outline, color: Colors.white, size: 32),
-                      const SizedBox(width: 12),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(Icons.headset_mic, color: AppColors.primary, size: 28),
+                      ),
+                      const SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('Need help?',
                                 style: GoogleFonts.poppins(
-                                    color: Colors.white, fontWeight: FontWeight.w700)),
+                                    color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),
                             Text('Contact us for inquiries about reservations.',
                                 style: GoogleFonts.poppins(
-                                    color: Colors.white.withOpacity(0.85),
-                                    fontSize: 12)),
+                                    color: Colors.white70, fontSize: 13)),
                           ],
                         ),
                       ),
-                      const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 14),
+                      const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 16),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 16),
+              
               // More links
               Row(
                 children: [
-                  Expanded(child: OutlinedButton.icon(
-                    icon: const Icon(Icons.info_outlined, size: 16),
-                    label: const Text('About Us'),
-                    onPressed: () => Navigator.pushNamed(context, '/about-us'),
-                  )),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.info_outlined, size: 18),
+                      label: const Text('About Us'),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: AppColors.primary),
+                        foregroundColor: AppColors.primary,
+                      ),
+                      onPressed: () => Navigator.pushNamed(context, '/about-us'),
+                    ),
+                  ),
                   const SizedBox(width: 10),
-                  Expanded(child: OutlinedButton.icon(
-                    icon: const Icon(Icons.photo_library_outlined, size: 16),
-                    label: const Text('Gallery'),
-                    onPressed: () => Navigator.pushNamed(context, '/gallery'),
-                  )),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.photo_library_outlined, size: 18),
+                      label: const Text('Gallery'),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: AppColors.primary),
+                        foregroundColor: AppColors.primary,
+                      ),
+                      onPressed: () => Navigator.pushNamed(context, '/gallery'),
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
@@ -398,12 +413,12 @@ class _PackageCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withOpacity(0.08),
-                blurRadius: 10,
-                offset: const Offset(0, 2))
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 12,
+                offset: const Offset(0, 4))
           ],
         ),
         child: Column(
@@ -413,8 +428,8 @@ class _PackageCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(14),
-                    topRight: Radius.circular(14),
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
                   ),
                   child: Image.asset(
                     imagePath ?? 'assets/images/package/package-1.jpg',
@@ -422,21 +437,18 @@ class _PackageCard extends StatelessWidget {
                     width: double.infinity,
                     fit: BoxFit.cover,
                     filterQuality: FilterQuality.high,
-                    cacheHeight: 200,
-                    cacheWidth: 600,
                     errorBuilder: (context, error, stackTrace) {
-                      debugPrint('Image load error for $imagePath: $error');
                       return Container(
                         height: 160,
-                        color: color.withOpacity(0.15),
-                        child: Center(
+                        color: const Color(0xFF003158),
+                        child: const Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.image_not_supported_outlined, color: color, size: 48),
-                              const SizedBox(height: 8),
+                              Icon(Icons.image_not_supported_outlined, color: AppColors.primary, size: 48),
+                              SizedBox(height: 8),
                               Text('Image Not Found',
-                                  style: TextStyle(color: color, fontSize: 12)),
+                                  style: TextStyle(color: Colors.white54, fontSize: 12)),
                             ],
                           ),
                         ),
@@ -451,7 +463,9 @@ class _PackageCard extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.red,
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFF6B6B), Color(0xFFFF4757)],
+                        ),
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
@@ -502,10 +516,10 @@ class _PackageCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Colors.white.withOpacity(0.08),
                 borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(14),
-                  bottomRight: Radius.circular(14),
+                  bottomLeft: Radius.circular(16),
+                  bottomRight: Radius.circular(16),
                 ),
               ),
               child: Column(
@@ -519,19 +533,19 @@ class _PackageCard extends StatelessWidget {
                             style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 16,
-                                color: AppColors.textPrimary)),
+                                color: Colors.white)),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                         decoration: BoxDecoration(
-                          color: color.withOpacity(0.1),
+                          color: AppColors.primary.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(price,
                             style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 16,
-                                color: color)),
+                                color: AppColors.primary)),
                       ),
                     ],
                   ),
@@ -543,18 +557,18 @@ class _PackageCard extends StatelessWidget {
                       return Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.08),
+                          color: Colors.white.withOpacity(0.08),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.check_circle_outline,
+                            const Icon(Icons.check_circle_outline,
                                 size: 10, color: AppColors.primary),
                             const SizedBox(width: 4),
                             Text(feature,
                                 style: GoogleFonts.poppins(
-                                    fontSize: 10, color: AppColors.textSecondary)),
+                                    fontSize: 10, color: Colors.white70)),
                           ],
                         ),
                       );
@@ -569,11 +583,11 @@ class _PackageCard extends StatelessWidget {
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                       ),
                       onPressed: onTap,
-                      child: const Text('View Details'),
+                      child: const Text('View Details', style: TextStyle(fontWeight: FontWeight.w600)),
                     ),
                   ),
                 ],
@@ -606,9 +620,9 @@ class _QuickActionCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.3)),
+          color: Colors.white.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white.withOpacity(0.15)),
         ),
         child: Column(
           children: [
@@ -647,12 +661,12 @@ class _PoolCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withOpacity(0.06),
-                blurRadius: 8,
-                offset: const Offset(0, 2))
+                color: Colors.black.withOpacity(0.12),
+                blurRadius: 10,
+                offset: const Offset(0, 4))
           ],
         ),
         child: Column(
@@ -660,8 +674,8 @@ class _PoolCard extends StatelessWidget {
             if (imagePath != null)
               ClipRRect(
                 borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(14),
-                  topRight: Radius.circular(14),
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
                 ),
                 child: Image.asset(
                   imagePath!,
@@ -669,15 +683,12 @@ class _PoolCard extends StatelessWidget {
                   width: double.infinity,
                   fit: BoxFit.cover,
                   filterQuality: FilterQuality.high,
-                  cacheHeight: 225,
-                  cacheWidth: 600,
                   errorBuilder: (context, error, stackTrace) {
-                    debugPrint('Error loading pool image $imagePath: $error');
                     return Container(
                       height: 180,
-                      color: color.withOpacity(0.1),
+                      color: const Color(0xFF003158),
                       child: Center(
-                        child: Icon(icon, color: color, size: 56),
+                        child: Icon(icon, color: AppColors.primary, size: 56),
                       ),
                     );
                   },
@@ -686,21 +697,21 @@ class _PoolCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Colors.white.withOpacity(0.08),
                 borderRadius: imagePath != null
                     ? const BorderRadius.only(
-                        bottomLeft: Radius.circular(14),
-                        bottomRight: Radius.circular(14),
+                        bottomLeft: Radius.circular(16),
+                        bottomRight: Radius.circular(16),
                       )
-                    : BorderRadius.circular(14),
+                    : BorderRadius.circular(16),
               ),
               child: Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(icon, color: color, size: 28),
                   ),
@@ -713,18 +724,18 @@ class _PoolCard extends StatelessWidget {
                             style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 15,
-                                color: AppColors.textPrimary)),
+                                color: Colors.white)),
                         const SizedBox(height: 4),
                         Text(description,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.poppins(
-                                color: AppColors.textSecondary, fontSize: 12)),
+                                color: Colors.white70, fontSize: 12)),
                       ],
                     ),
                   ),
                   const Icon(Icons.arrow_forward_ios,
-                      color: AppColors.textSecondary, size: 14),
+                      color: Colors.white54, size: 14),
                 ],
               ),
             ),
@@ -743,11 +754,11 @@ class _AmenityChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.08),
+        color: Colors.white.withOpacity(0.08),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+        border: Border.all(color: Colors.white.withOpacity(0.15)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -757,24 +768,12 @@ class _AmenityChip extends StatelessWidget {
           Text(label,
               style: GoogleFonts.poppins(
                   fontSize: 12,
-                  color: AppColors.primary,
+                  color: Colors.white70,
                   fontWeight: FontWeight.w500)),
         ],
       ),
     );
   }
-}
-
-class _BookingTabPlaceholder extends StatelessWidget {
-  const _BookingTabPlaceholder();
-  @override
-  Widget build(BuildContext context) => const SizedBox.shrink();
-}
-
-class _MyBookingsTabPlaceholder extends StatelessWidget {
-  const _MyBookingsTabPlaceholder();
-  @override
-  Widget build(BuildContext context) => const SizedBox.shrink();
 }
 
 class _ProfileTab extends StatelessWidget {
@@ -786,45 +785,70 @@ class _ProfileTab extends StatelessWidget {
     final user = auth.user;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      backgroundColor: const Color(0xFF003158),
+      appBar: AppBar(
+        title: const Text('Profile', style: TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0xFF003158),
+        elevation: 0,
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           Center(
             child: Column(
               children: [
-                CircleAvatar(
-                  radius: 40,
-                  backgroundColor: AppColors.primary,
-                  child: Text(
-                    user?.name.isNotEmpty == true ? user!.name[0].toUpperCase() : 'U',
-                    style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.primary, width: 2),
+                  ),
+                  child: CircleAvatar(
+                    radius: 45,
+                    backgroundColor: AppColors.primary,
+                    child: Text(
+                      user?.name.isNotEmpty == true ? user!.name[0].toUpperCase() : 'U',
+                      style: const TextStyle(color: Color(0xFF003158), fontSize: 36, fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
                 Text(user?.name ?? '',
                     style: GoogleFonts.poppins(
-                        fontSize: 20, fontWeight: FontWeight.w700)),
+                        fontSize: 22, fontWeight: FontWeight.w700, color: Colors.white)),
                 Text(user?.email ?? '',
                     style: GoogleFonts.poppins(
-                        color: AppColors.textSecondary, fontSize: 13)),
+                        color: Colors.white70, fontSize: 14)),
               ],
             ),
           ),
           const SizedBox(height: 24),
           _ProfileItem(icon: Icons.person_outlined, label: 'Full Name', value: user?.name ?? ''),
+          const SizedBox(height: 10),
           _ProfileItem(icon: Icons.email_outlined, label: 'Email', value: user?.email ?? ''),
+          const SizedBox(height: 10),
           _ProfileItem(icon: Icons.phone_outlined, label: 'Phone', value: user?.phone ?? 'Not set'),
+          const SizedBox(height: 10),
           _ProfileItem(icon: Icons.badge_outlined, label: 'Role', value: user?.role ?? ''),
           const SizedBox(height: 24),
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            icon: const Icon(Icons.logout),
-            label: const Text('Logout'),
-            onPressed: () async {
-              await auth.logout();
-              if (context.mounted) Navigator.pushReplacementNamed(context, '/login');
-            },
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              icon: const Icon(Icons.logout),
+              label: const Text('Logout', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              onPressed: () async {
+                await auth.logout();
+                if (context.mounted) Navigator.pushReplacementNamed(context, '/login');
+              },
+            ),
           ),
         ],
       ),
@@ -841,27 +865,35 @@ class _ProfileItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border),
+        color: Colors.white.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withOpacity(0.15)),
       ),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.primary, size: 20),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label,
-                  style: GoogleFonts.poppins(
-                      fontSize: 11, color: AppColors.textSecondary)),
-              Text(value,
-                  style: GoogleFonts.poppins(
-                      fontSize: 14, fontWeight: FontWeight.w600)),
-            ],
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: AppColors.primary, size: 22),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: GoogleFonts.poppins(
+                        fontSize: 11, color: Colors.white54)),
+                Text(value.isNotEmpty ? value : 'Not set',
+                    style: GoogleFonts.poppins(
+                        fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white)),
+              ],
+            ),
           ),
         ],
       ),

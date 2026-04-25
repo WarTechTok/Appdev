@@ -16,6 +16,9 @@ const MONGO_URI = 'mongodb+srv://poolUser:poolUser123@poolcluster.brghuqk.mongod
 let db;
 let usersCollection, bookingsCollection, roomsCollection, staffCollection, inventoryCollection;
 
+// In-memory session storage for bookings (when DB is unavailable)
+let sessionBookings = [];
+
 const connectDB = async () => {
   try {
     const client = new MongoClient(MONGO_URI, { maxPoolSize: 10 });
@@ -43,7 +46,43 @@ const sendMock = (res, endpoint, statusCode = 200) => {
   const mocks = {
     register: { success: true, message: 'User registered successfully', userId: 'user_123', token: 'mock_token' },
     login: { success: true, message: 'Login successful', token: 'mock_token', user: { id: 'user_123', email: 'test@example.com', name: 'Test User', role: 'customer' } },
-    bookings: { success: true, bookings: [] },
+    bookings: { 
+      success: true, 
+      bookings: [
+        {
+          _id: 'booking_1',
+          customerName: 'John Doe',
+          customerContact: '+1234567890',
+          customerEmail: 'john@example.com',
+          oasis: 'Oasis Paradise',
+          package: 'Family Package',
+          bookingDate: new Date().toISOString(),
+          session: 'Morning',
+          pax: 4,
+          downpayment: 2500,
+          paymentMethod: 'Credit Card',
+          paymentStatus: 'Pending',
+          status: 'Pending',
+          createdAt: new Date().toISOString(),
+        },
+        {
+          _id: 'booking_2',
+          customerName: 'Jane Smith',
+          customerContact: '+0987654321',
+          customerEmail: 'jane@example.com',
+          oasis: 'Tropical Haven',
+          package: 'Couple Package',
+          bookingDate: new Date().toISOString(),
+          session: 'Afternoon',
+          pax: 2,
+          downpayment: 1500,
+          paymentMethod: 'Debit Card',
+          paymentStatus: 'Confirmed',
+          status: 'Confirmed',
+          createdAt: new Date().toISOString(),
+        }
+      ] 
+    },
     rooms: { success: true, rooms: [] },
     stats: { success: true, stats: { totalBookings: 150, totalRevenue: 50000, totalGuests: 300, occupancyRate: 75.5 } },
   };
@@ -156,7 +195,29 @@ app.get('/api/auth/profile', async (req, res) => {
 // Get all bookings
 app.get('/api/bookings', async (req, res) => {
   try {
-    if (!db) return sendMock(res, 'bookings', 200);
+    if (!db) {
+      // Return session bookings when DB is unavailable
+      return res.json({
+        success: true,
+        bookings: sessionBookings.map(b => ({
+          id: b._id,
+          _id: b._id,
+          customerName: b.customerName,
+          customerContact: b.customerContact,
+          customerEmail: b.customerEmail,
+          oasis: b.oasis,
+          package: b.package,
+          bookingDate: b.bookingDate,
+          session: b.session,
+          pax: b.pax,
+          downpayment: b.downpayment,
+          paymentMethod: b.paymentMethod,
+          paymentStatus: b.paymentStatus,
+          status: b.status,
+          createdAt: b.createdAt,
+        })),
+      });
+    }
     
     const bookings = await bookingsCollection.find({}).toArray();
     res.json({
@@ -186,28 +247,86 @@ app.get('/api/bookings', async (req, res) => {
 // Create booking
 app.post('/api/bookings', async (req, res) => {
   try {
-    const { roomId, userId, checkInDate, checkOutDate, totalPrice } = req.body;
+    console.log('\n📥 Booking request received:', JSON.stringify(req.body, null, 2));
     
-    if (!db) return sendMock(res, 'bookings', 201);
+    const { userId, customerName, customerContact, customerEmail, oasis, package: packageName, bookingDate, session, pax, downpayment, paymentMethod, addons } = req.body;
     
-    const result = await bookingsCollection.insertOne({
-      roomId,
-      userId,
-      checkInDate,
-      checkOutDate,
-      status: 'pending',
-      totalPrice,
+    // Validate required fields
+    if (!customerName || !customerContact || !oasis || !packageName || !bookingDate) {
+      console.log('❌ Validation failed - Missing fields:', { customerName, customerContact, oasis, packageName, bookingDate });
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields: customerName, customerContact, oasis, package, bookingDate',
+      });
+    }
+    
+    console.log('✅ Validation passed');
+    console.log('Database connected:', !!db);
+    
+    if (!db) {
+      // Store in session memory when DB is unavailable
+      const bookingId = 'booking_' + Date.now().toString();
+      const bookingRecord = {
+        _id: bookingId,
+        userId: userId || null,
+        customerName: customerName.trim(),
+        customerContact: customerContact.trim(),
+        customerEmail: customerEmail?.trim() || null,
+        oasis,
+        package: packageName,
+        bookingDate: new Date(bookingDate).toISOString(),
+        session,
+        pax: parseInt(pax) || 1,
+        downpayment: parseFloat(downpayment) || 0,
+        paymentMethod,
+        addons: addons || [],
+        status: 'Pending',
+        paymentStatus: 'Pending',
+        createdAt: new Date().toISOString(),
+      };
+      sessionBookings.push(bookingRecord);
+      console.log('📝 Booking saved to session memory:', bookingRecord);
+      
+      return res.status(201).json({
+        success: true,
+        message: 'Booking created successfully',
+        _id: bookingId,
+        booking: bookingRecord,
+      });
+    }
+    
+    const bookingRecord = {
+      userId: userId || null,
+      customerName: customerName.trim(),
+      customerContact: customerContact.trim(),
+      customerEmail: customerEmail?.trim() || null,
+      oasis,
+      package: packageName,
+      bookingDate: new Date(bookingDate),
+      session,
+      pax: parseInt(pax) || 1,
+      downpayment: parseFloat(downpayment) || 0,
+      paymentMethod,
+      addons: addons || [],
+      status: 'Pending',
+      paymentStatus: 'Pending',
       createdAt: new Date(),
-    });
+    };
+    
+    console.log('💾 Saving to database:', bookingRecord);
+    const result = await bookingsCollection.insertOne(bookingRecord);
+    console.log('✅ Booking saved to MongoDB with ID:', result.insertedId.toString());
     
     res.status(201).json({
       success: true,
       message: 'Booking created successfully',
-      bookingId: result.insertedId.toString(),
+      _id: result.insertedId.toString(),
+      booking: { ...bookingRecord, _id: result.insertedId.toString() },
     });
   } catch (error) {
-    console.error('Create booking error:', error);
-    res.status(500).json({ success: false, message: 'Error creating booking' });
+    console.error('❌ Create booking error:', error);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ success: false, message: 'Error creating booking: ' + error.message });
   }
 });
 
@@ -489,7 +608,47 @@ app.post('/api/admin/inventory/:id/use', async (req, res) => {
 // Get admin bookings
 app.get('/api/admin/bookings', async (req, res) => {
   try {
-    if (!db) return res.json({ success: true, bookings: [] });
+    if (!db) {
+      // Return session bookings merged with mock data when DB is unavailable
+      const mockBookings = [
+        {
+          _id: 'booking_1',
+          customerName: 'John Doe',
+          customerContact: '+1234567890',
+          customerEmail: 'john@example.com',
+          oasis: 'Oasis Paradise',
+          package: 'Family Package',
+          bookingDate: new Date().toISOString(),
+          session: 'Morning',
+          pax: 4,
+          downpayment: 2500,
+          paymentMethod: 'Credit Card',
+          paymentStatus: 'Pending',
+          status: 'Pending',
+          createdAt: new Date().toISOString(),
+        },
+        {
+          _id: 'booking_2',
+          customerName: 'Jane Smith',
+          customerContact: '+0987654321',
+          customerEmail: 'jane@example.com',
+          oasis: 'Tropical Haven',
+          package: 'Couple Package',
+          bookingDate: new Date().toISOString(),
+          session: 'Afternoon',
+          pax: 2,
+          downpayment: 1500,
+          paymentMethod: 'Debit Card',
+          paymentStatus: 'Confirmed',
+          status: 'Confirmed',
+          createdAt: new Date().toISOString(),
+        }
+      ];
+      
+      // Combine mock data with session bookings
+      const allBookings = [...mockBookings, ...sessionBookings];
+      return res.json({ success: true, bookings: allBookings });
+    }
     
     const bookings = await bookingsCollection.find({}).toArray();
     res.json({ success: true, bookings });
@@ -582,6 +741,139 @@ app.get('/api/admin/reservations', async (req, res) => {
   }
 });
 
+// ===== REPORTS ENDPOINTS =====
+
+// Reservation Report
+app.get('/api/admin/reports/reservation', async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    let query = {};
+    
+    if (startDate || endDate) {
+      query.bookingDate = {};
+      if (startDate) query.bookingDate.$gte = new Date(startDate).toISOString();
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setDate(end.getDate() + 1);
+        query.bookingDate.$lt = end.toISOString();
+      }
+    }
+    
+    if (!db) {
+      return res.json({ 
+        success: true, 
+        reservations: [],
+        total: 0
+      });
+    }
+
+    const reservations = await bookingsCollection.find(query).toArray();
+    res.json({ 
+      success: true, 
+      reservations,
+      total: reservations.length
+    });
+  } catch (error) {
+    console.error('Report error:', error);
+    res.status(500).json({ success: false, message: 'Error generating report' });
+  }
+});
+
+// Sales Report
+app.get('/api/admin/reports/sales', async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    let query = {};
+    
+    if (startDate || endDate) {
+      query.bookingDate = {};
+      if (startDate) query.bookingDate.$gte = new Date(startDate).toISOString();
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setDate(end.getDate() + 1);
+        query.bookingDate.$lt = end.toISOString();
+      }
+    }
+    
+    if (!db) {
+      return res.json({ 
+        success: true, 
+        sales: [],
+        totalSales: 0
+      });
+    }
+
+    const bookings = await bookingsCollection.find(query).toArray();
+    const sales = bookings.map(b => ({
+      _id: b._id,
+      date: b.bookingDate,
+      customerName: b.customerName,
+      oasis: b.oasis,
+      package: b.package,
+      amount: b.downpayment || 0,
+      paymentStatus: b.paymentStatus
+    }));
+    
+    const totalSales = sales.reduce((sum, s) => sum + (s.amount || 0), 0);
+    
+    res.json({ 
+      success: true, 
+      sales,
+      totalSales,
+      total: totalSales
+    });
+  } catch (error) {
+    console.error('Report error:', error);
+    res.status(500).json({ success: false, message: 'Error generating report' });
+  }
+});
+
+// Inventory Usage Report
+app.get('/api/admin/reports/inventory-usage', async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    
+    if (!db) {
+      return res.json({ 
+        success: true, 
+        items: [],
+        total: 0
+      });
+    }
+
+    const items = await db.collection('inventories').find({}).toArray();
+    res.json({ 
+      success: true, 
+      items,
+      total: items.length
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error generating report' });
+  }
+});
+
+// Staff Activity Report
+app.get('/api/admin/reports/staff-activity', async (req, res) => {
+  try {
+    if (!db) {
+      return res.json({ 
+        success: true, 
+        staff: [],
+        total: 0
+      });
+    }
+
+    const staff = await staffCollection.find({}).toArray();
+    res.json({ 
+      success: true, 
+      staff,
+      total: staff.length
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error generating report' });
+  }
+});
+
 // ===== STAFF ROUTES =====
 
 // Staff Dashboard
@@ -641,6 +933,128 @@ app.get('/api/staff/inspections', async (req, res) => {
     res.json({ success: true, inspections: [] });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error fetching inspections' });
+  }
+});
+
+// ===== TEST ENDPOINTS =====
+
+// Test database connection
+app.get('/api/test/db-status', async (req, res) => {
+  try {
+    if (!db) {
+      return res.json({ 
+        success: false, 
+        status: 'DISCONNECTED',
+        message: 'Database is not connected',
+        sessionBookingsCount: sessionBookings.length,
+      });
+    }
+    
+    const adminDb = db.admin();
+    const status = await adminDb.ping();
+    
+    const totalBookings = await bookingsCollection.countDocuments();
+    
+    res.json({
+      success: true,
+      status: 'CONNECTED',
+      message: 'Connected to MongoDB Atlas',
+      totalBookingsInDB: totalBookings,
+      sessionBookingsCount: sessionBookings.length,
+      ping: status,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      status: 'ERROR',
+      message: error.message,
+    });
+  }
+});
+
+// Test create booking
+app.post('/api/test/create-booking', async (req, res) => {
+  try {
+    const testBooking = {
+      customerName: 'Test Customer',
+      customerContact: '+1234567890',
+      customerEmail: 'test@example.com',
+      oasis: 'Test Oasis',
+      package: 'Test Package',
+      bookingDate: new Date().toISOString(),
+      session: 'Day',
+      pax: 2,
+      downpayment: 1000,
+      paymentMethod: 'Cash',
+      addons: [],
+      status: 'Pending',
+      paymentStatus: 'Pending',
+      createdAt: new Date(),
+    };
+    
+    console.log('\n🧪 TEST: Creating booking...');
+    console.log('Database connected:', !!db);
+    
+    if (!db) {
+      console.log('⚠️ Database not connected, using session storage');
+      const bookingId = 'test_booking_' + Date.now().toString();
+      testBooking._id = bookingId;
+      sessionBookings.push(testBooking);
+      return res.json({
+        success: true,
+        message: 'Test booking saved to session (DB not connected)',
+        bookingId,
+        booking: testBooking,
+      });
+    }
+    
+    const result = await bookingsCollection.insertOne(testBooking);
+    console.log('✅ TEST: Booking saved with ID:', result.insertedId.toString());
+    
+    // Verify the booking was inserted
+    const verifyBooking = await bookingsCollection.findOne({ _id: result.insertedId });
+    console.log('✅ TEST: Verified booking from DB:', !!verifyBooking);
+    
+    res.json({
+      success: true,
+      message: 'Test booking created successfully',
+      bookingId: result.insertedId.toString(),
+      booking: { ...testBooking, _id: result.insertedId.toString() },
+      verified: !!verifyBooking,
+    });
+  } catch (error) {
+    console.error('❌ TEST: Create booking error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Test booking failed: ' + error.message,
+    });
+  }
+});
+
+// Get all bookings count
+app.get('/api/test/bookings-count', async (req, res) => {
+  try {
+    if (!db) {
+      return res.json({
+        success: true,
+        dbBookings: 0,
+        sessionBookings: sessionBookings.length,
+        total: sessionBookings.length,
+      });
+    }
+    
+    const count = await bookingsCollection.countDocuments();
+    res.json({
+      success: true,
+      dbBookings: count,
+      sessionBookings: sessionBookings.length,
+      total: count + sessionBookings.length,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 });
 

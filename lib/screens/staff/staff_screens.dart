@@ -646,7 +646,7 @@ class _StaffInspectionsScreenState extends State<StaffInspectionsScreen> {
                 Text('New Inspection Report', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  value: selectedRoomId,
+                  initialValue: selectedRoomId,
                   decoration: const InputDecoration(labelText: 'Select Room *'),
                   items: _assignedRooms.map((r) => DropdownMenuItem(
                       value: r['_id']?.toString(), child: Text(r['name'] ?? ''))).toList(),
@@ -664,7 +664,7 @@ class _StaffInspectionsScreenState extends State<StaffInspectionsScreen> {
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text('Damages Found', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
-                  value: damagesFound, activeColor: AppColors.error,
+                  value: damagesFound, activeThumbColor: AppColors.error,
                   onChanged: (v) => setModal(() => damagesFound = v),
                 ),
                 if (damagesFound) ...[
@@ -675,7 +675,7 @@ class _StaffInspectionsScreenState extends State<StaffInspectionsScreen> {
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text('Maintenance Required', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
-                  value: maintenanceRequired, activeColor: AppColors.warning,
+                  value: maintenanceRequired, activeThumbColor: AppColors.warning,
                   onChanged: (v) => setModal(() => maintenanceRequired = v),
                 ),
                 if (maintenanceRequired) ...[
@@ -747,7 +747,7 @@ class _StaffInspectionsScreenState extends State<StaffInspectionsScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: DropdownButtonFormField<String>(
-        value: value,
+        initialValue: value,
         decoration: InputDecoration(labelText: label),
         items: items.map((i) => DropdownMenuItem(value: i, child: Text(i))).toList(),
         onChanged: onChanged,

@@ -4,11 +4,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../config/app_theme.dart';
 import '../models/models.dart';
+import 'dart:ui';
 
 // ============================================
 // STAT CARD - Enhanced with Image Support
 // ============================================
-class StatCard extends StatelessWidget {
+class StatCard extends StatefulWidget {
   final String title;
   final String value;
   final IconData icon;
@@ -27,67 +28,133 @@ class StatCard extends StatelessWidget {
   });
 
   @override
+  State<StatCard> createState() => _StatCardState();
+}
+
+class _StatCardState extends State<StatCard> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _elevationAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.98).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+    
+    _elevationAnimation = Tween<double>(begin: 0, end: 4).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(10),
-                image: imagePath != null
-                    ? DecorationImage(
-                        image: AssetImage(imagePath!),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
-              ),
-              child: imagePath == null
-                  ? Icon(icon, color: color, size: 24)
-                  : null,
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w500,
+      onTapDown: (_) => _controller.forward(),
+      onTapUp: (_) {
+        _controller.reverse();
+        widget.onTap?.call();
+      },
+      onTapCancel: () => _controller.reverse(),
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _scaleAnimation.value,
+            child: Container(
+              margin: EdgeInsets.only(bottom: _elevationAnimation.value),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(18),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.10),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.25),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 14,
+                          offset: Offset(0, 6 + _elevationAnimation.value),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Icon Container
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: widget.color.withOpacity(0.20),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.15),
+                            ),
+                          ),
+                          child: Icon(
+                            widget.icon,
+                            color: Colors.white,
+                            size: 26,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        
+                        // Text
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                widget.title,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  color: Colors.white70,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                softWrap: true,
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                widget.value,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    value,
-                    style: GoogleFonts.poppins(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -142,6 +209,8 @@ class StatusBadge extends StatelessWidget {
           fontWeight: FontWeight.w600,
           color: _color,
         ),
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
       ),
     );
   }
@@ -163,7 +232,8 @@ class LoadingWidget extends StatelessWidget {
           const CircularProgressIndicator(color: AppColors.primary),
           if (message != null) ...[
             const SizedBox(height: 12),
-            Text(message!, style: GoogleFonts.poppins(color: AppColors.textSecondary)),
+            Text(message!,
+                style: GoogleFonts.poppins(color: AppColors.textSecondary)),
           ],
         ],
       ),
@@ -234,12 +304,16 @@ class SectionHeader extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          title,
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+        Expanded(
+          child: Text(
+            title,
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
         ),
         if (actionLabel != null)
@@ -272,7 +346,8 @@ Future<bool?> showConfirmDialog(
     context: context,
     builder: (_) => AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      title: Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
+      title:
+          Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
       content: Text(message, style: GoogleFonts.poppins()),
       actions: [
         TextButton(
@@ -326,6 +401,8 @@ class PriorityBadge extends StatelessWidget {
           fontWeight: FontWeight.w600,
           color: _color,
         ),
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
       ),
     );
   }
@@ -417,8 +494,10 @@ class BookingCard extends StatelessWidget {
                             color: AppColors.textPrimary,
                           ),
                           overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                       ),
+                      const SizedBox(width: 8),
                       StatusBadge(booking.status),
                     ],
                   ),
@@ -430,11 +509,14 @@ class BookingCard extends StatelessWidget {
                       fontSize: 12,
                       color: AppColors.textSecondary,
                     ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                   const SizedBox(height: 8),
                   // Contact and Amount
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
                         child: Column(
@@ -446,6 +528,8 @@ class BookingCard extends StatelessWidget {
                                 fontSize: 11,
                                 color: AppColors.textSecondary,
                               ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -455,10 +539,13 @@ class BookingCard extends StatelessWidget {
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.primary,
                               ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                             ),
                           ],
                         ),
                       ),
+                      const SizedBox(width: 8),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
@@ -491,7 +578,8 @@ class BookingCard extends StatelessWidget {
                           ),
                         if (onDelete != null)
                           IconButton(
-                            icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.error),
+                            icon: const Icon(Icons.delete_outline,
+                                size: 18, color: AppColors.error),
                             onPressed: onDelete,
                             constraints: const BoxConstraints(),
                             padding: const EdgeInsets.all(6),
@@ -565,14 +653,14 @@ class RoomCard extends StatelessWidget {
               child: Image.asset(
                 _getRoomImage(),
                 height: 120,
-                width: 120,
+                width: 110,
                 fit: BoxFit.cover,
               ),
             ),
             // Content
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -583,26 +671,33 @@ class RoomCard extends StatelessWidget {
                           child: Text(
                             room.name,
                             style: GoogleFonts.poppins(
-                              fontSize: 14,
+                              fontSize: 13,
                               fontWeight: FontWeight.w700,
                               color: AppColors.textPrimary,
                             ),
                             overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
                         ),
+                        const SizedBox(width: 6),
                         StatusBadge(room.status),
                       ],
                     ),
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        Icon(Icons.people_outline, size: 14, color: AppColors.textSecondary),
+                        const Icon(Icons.people_outline,
+                            size: 14, color: AppColors.textSecondary),
                         const SizedBox(width: 4),
-                        Text(
-                          '${room.capacity} capacity',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            color: AppColors.textSecondary,
+                        Expanded(
+                          child: Text(
+                            '${room.capacity} capacity',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              color: AppColors.textSecondary,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
                         ),
                       ],
@@ -611,20 +706,27 @@ class RoomCard extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          formatPeso(room.price),
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primary,
+                        Flexible(
+                          child: Text(
+                            formatPeso(room.price),
+                            style: GoogleFonts.poppins(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primary,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
                         ),
                         if (onBook != null)
                           ElevatedButton(
                             onPressed: onBook,
                             style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
                               backgroundColor: AppColors.primary,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              minimumSize: Size.zero,
                             ),
                             child: Text(
                               'Book',
@@ -741,22 +843,29 @@ class StaffCard extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                       color: AppColors.textPrimary,
                     ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: _getPositionColor().withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          staff.position,
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: _getPositionColor(),
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: _getPositionColor().withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            staff.position,
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: _getPositionColor(),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
                         ),
                       ),
@@ -772,6 +881,7 @@ class StaffCard extends StatelessWidget {
                       color: AppColors.textSecondary,
                     ),
                     overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ],
               ),
@@ -818,7 +928,9 @@ class InventoryCard extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: inventory.isLowStock ? AppColors.error.withOpacity(0.3) : Colors.grey.withOpacity(0.1),
+            color: inventory.isLowStock
+                ? AppColors.error.withOpacity(0.3)
+                : Colors.grey.withOpacity(0.1),
             width: inventory.isLowStock ? 2 : 1,
           ),
           boxShadow: [
@@ -836,11 +948,15 @@ class InventoryCard extends StatelessWidget {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: inventory.isLowStock ? AppColors.error.withOpacity(0.15) : AppColors.info.withOpacity(0.15),
+                color: inventory.isLowStock
+                    ? AppColors.error.withOpacity(0.15)
+                    : AppColors.info.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(28),
               ),
               child: Icon(
-                inventory.isLowStock ? Icons.warning_outlined : Icons.inventory_outlined,
+                inventory.isLowStock
+                    ? Icons.warning_outlined
+                    : Icons.inventory_outlined,
                 color: inventory.isLowStock ? AppColors.error : AppColors.info,
                 size: 28,
               ),
@@ -858,6 +974,8 @@ class InventoryCard extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                       color: AppColors.textPrimary,
                     ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -866,11 +984,14 @@ class InventoryCard extends StatelessWidget {
                       fontSize: 10,
                       color: AppColors.textSecondary,
                     ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                   const SizedBox(height: 4),
                   if (inventory.isLowStock)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: AppColors.error.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(4),
@@ -887,9 +1008,11 @@ class InventoryCard extends StatelessWidget {
                 ],
               ),
             ),
+            const SizedBox(width: 8),
             // Quantity
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   '${inventory.quantity}',
@@ -1004,6 +1127,8 @@ class GalleryItem extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
                         ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                       if (description != null) ...[
                         const SizedBox(height: 4),
@@ -1013,11 +1138,141 @@ class GalleryItem extends StatelessWidget {
                             fontSize: 12,
                             color: Colors.white.withOpacity(0.8),
                           ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 2,
                         ),
                       ],
                     ],
                   ),
                 ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================
+// DASHBOARD HEADER
+// ============================================
+class DashboardHeader extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final List<Widget>? actions;
+  final String? logoImagePath; // Optional custom logo path
+
+  const DashboardHeader({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    this.actions,
+    this.logoImagePath,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.08),
+            border: Border(
+              bottom: BorderSide(
+                color: Colors.white.withOpacity(0.15),
+                width: 1,
+              ),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 18,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              // LOGO / ICON (replaced with image if provided)
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.10),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.15),
+                  ),
+                ),
+                child: logoImagePath != null
+                    ? Image.asset(
+                        logoImagePath!,
+                        width: 28,
+                        height: 28,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          // Fallback to icon if image fails to load
+                          return const Icon(
+                            Icons.waves,
+                            color: Colors.tealAccent,
+                            size: 24,
+                          );
+                        },
+                      )
+                    : const Icon(
+                        Icons.waves,
+                        color: Colors.tealAccent,
+                        size: 24,
+                      ),
+              ),
+
+              const SizedBox(width: 12),
+
+              // TEXT
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        color: Colors.white70,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+
+              // ACTIONS
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: actions ??
+                    [
+                      IconButton(
+                        icon: const Icon(Icons.refresh, color: Colors.white70),
+                        onPressed: () {},
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.logout, color: Colors.white70),
+                        onPressed: () {},
+                      ),
+                    ],
               ),
             ],
           ),
@@ -1041,4 +1296,39 @@ String formatDate(DateTime date) {
 
 String formatDateTime(DateTime date) {
   return DateFormat('MMM dd, yyyy • hh:mm a').format(date);
+}
+// ============================================
+// STICKY HEADER DELEGATE
+// ============================================
+class StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final double minHeight;
+  final double maxHeight;
+  final Widget child;
+
+  StickyHeaderDelegate({
+    required this.minHeight,
+    required this.maxHeight,
+    required this.child,
+  });
+
+  @override
+  double get minExtent => minHeight;
+  
+  @override
+  double get maxExtent => maxHeight;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return SizedBox(
+      height: maxHeight,
+      child: child,
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant StickyHeaderDelegate oldDelegate) {
+    return oldDelegate.minHeight != minHeight ||
+        oldDelegate.maxHeight != maxHeight ||
+        oldDelegate.child != child;
+  }
 }
